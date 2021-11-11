@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - api-network
+    container_name: api-db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+  api:
+    container_name: api
+    image: api:1.0.0
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    command: npm run start:debug
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    networks:
+      - api-network
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - db
+    restart: unless-stopped
+    env_file:
+      - .env
+
+networks:
+  api-network:
